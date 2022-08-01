@@ -1,5 +1,5 @@
 """
-Git Projet Manager
+Git Project Manager
 """
 
 __name__ = 'gpm'
