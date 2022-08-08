@@ -1,0 +1,6 @@
+### Python ###
+__pycache__
+
+### PyPi ###
+endurance.egg-info
+dist
