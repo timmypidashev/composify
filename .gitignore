@@ -1,6 +1,6 @@
 ### Python ###
 __pycache__
-
-### PyPi ###
-gpm.egg-info
 dist
+
+### Tox ###
+.tox
