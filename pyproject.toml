@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "gpm"
+name = "composify"
 version = "0.1.0"
-description = "Git Project Manager(GPM)"
+description = "Compose Project Manager"
 authors = ["Timothy Pidashev <pidashev.tim@gmail.com>"]
 license = "MIT"
 readme = "README.md"
