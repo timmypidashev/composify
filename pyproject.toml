@@ -2,11 +2,11 @@
 name = "composify"
 version = "0.1.0"
 description = "Compose Project Manager"
-authors = ["Timothy Pidashev <pidashev.tim@gmail.com>"]
+authors = ["Timothy Pidashev (timmypidashev) <pidashev.tim@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [
-    { include = "gpm", from = "src" }
+    { include = "composify", from = "src" }
 ]
 include = [
     { path = "tests", format = "sdist" }
