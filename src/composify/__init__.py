@@ -5,6 +5,12 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2022-present Timothy Pidashev"
 __version__ = "0.1.0"
 
+
+from . import db
+from . import log
+from . import errors
+
+import asyncio
 import argparse
 import sys
 
@@ -44,8 +50,7 @@ parser = argparse.ArgumentParser(
     formatter_class=format
 )
 
-
-def define_arguments():
+async def define_arguments():
     """
     Define command-line arguments.
     """
@@ -53,7 +58,7 @@ def define_arguments():
     parser.add_argument('-v', '--version', default=defaults["version"], help='output version information and exit', action='store_true')
 
 
-def parse_arguments():
+async def parse_arguments():
     """
     Parse arguments. If none inputted, default to '--help'.
     """
@@ -68,6 +73,5 @@ def parse_arguments():
     
 
 def run_as_module():
-    
-    define_arguments()
-    parse_arguments()
+    asyncio.run(define_arguments())
+    asyncio.run(parse_arguments())
