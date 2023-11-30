@@ -8,6 +8,7 @@ rapptz-asqlite = "*"
 coloredlogs = "*"
 pyyaml = "*"
 python-dotenv = "*"
+colorama = "*"
 
 [dev-packages]
 

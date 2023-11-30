@@ -45,8 +45,8 @@ format = lambda prog: HelpFormatter(prog)
 
 parser = argparse.ArgumentParser(
     prog=__title__,
-    usage='%(prog)s [options]',
-    description=__summary__,
+    usage='%(prog)s [options] [command]',
+    description=f"{__summary__} v{__version__}",
     formatter_class=format
 )
 
@@ -54,8 +54,15 @@ async def define_arguments():
     """
     Define command-line arguments.
     """
+    # options
     parser.add_argument("-vv", "--verbose", default=defaults["verbose"], help="set composify output to output debug logs", action="store_true") 
     parser.add_argument('-v', '--version', default=defaults["version"], help='output version information and exit', action='store_true')
+
+    # commands subparsers
+    subparsers = parser.add_subparsers(title='commands', dest='subcommand', help='available commands')
+
+    init = subparsers.add_parser("init", help="initialize a new project")
+
 
 
 async def parse_arguments():
@@ -66,9 +73,6 @@ async def parse_arguments():
 
     if args.version:
         print(f'{__title__} v{__version__}')
-
-    # Set verbosity level of traceback
-    # set_verbosity_level(arguments['verbose'])
 
     
 
