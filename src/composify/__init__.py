@@ -13,6 +13,7 @@ from . import errors
 import asyncio
 import argparse
 import sys
+import os
 
 
 """
@@ -54,8 +55,27 @@ async def parse_arguments():
     #if args.version:
     #    print(f'{__title__} v{__version__}')
 
+
+async def create_config_dir():
+    """
+    Create '/etc/composify' if the folder doesn't yet exist
+    """
+    # TODO: reimplement with an os agnostic approach
+    # NOTE: this function will be replaced soon by a 'system' module!
+
+    user_home = os.path.expanduser("~")
+    config_path = os.path.join(user_home, ".config", "composify")
+
+    try:
+        # Check if the directory exists, and create it if not
+        if not os.path.exists(config_path):
+            os.makedirs(config_path)
+
+    except Exception:
+        print("Only posix based systems are supported at the moment!")
     
 
 def run_as_module():
+    asyncio.run(create_config_dir())
     asyncio.run(define_arguments())
     asyncio.run(parse_arguments())

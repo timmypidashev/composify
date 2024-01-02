@@ -9,10 +9,16 @@ import logging
 import logging.config
 import coloredlogs
 
+
 # configure logging
-with open("./composify/log_config.yaml",  "r") as file:
-    configuration = yaml.safe_load(file.read())
-    logging.config.dictConfig(configuration)
+module_dir = os.path.dirname(os.path.abspath(__file__))
+log_config_path = os.path.join(module_dir, "log_config.yaml")
+log_config = os.path.realpath(log_config_path)
+
+async def init():
+    with open(log_config,  "r") as file:
+        configuration = yaml.safe_load(file.read())
+        logging.config.dictConfig(configuration)
 
 class Logger:
     """

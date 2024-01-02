@@ -19,7 +19,7 @@ handlers:
     formatter: default
     when: D
     backupCount: 0
-    filename: ./composify/composify.log
+    filename: /etc/composify/composify.log
 
 loggers:
   root:

@@ -8,7 +8,7 @@ import asqlite
 from . import log
 log = log.Logger("db")
 
-DB_PATH = "./composify/composify.db"
+DB_PATH = "/etc/composify/composify.db"
 BUILD_PATH = "./composify/db.sql"
 
 async def build():
