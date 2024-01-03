@@ -60,5 +60,6 @@ async def parse_arguments():
     #    print(f'{__title__} v{__version__}')
 
 def run_as_module():
+    asyncio.run(db.build())
     asyncio.run(define_arguments())
     asyncio.run(parse_arguments())

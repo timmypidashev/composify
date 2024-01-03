@@ -6,9 +6,13 @@ import traceback
 from dotenv import load_dotenv
 import logging
 import logging.config
-import coloredlogs
+from colorama import init, Fore, Style
 from logging.handlers import TimedRotatingFileHandler
 
+# Initialize colorama to work with ANSI escape codes
+init(autoreset=True)
+
+# Make sure we have a proper log output path
 user_home = os.path.expanduser("~")
 config_path = os.path.join(user_home, ".config", "composify")
 log_file = f"{config_path}/composify.log"
@@ -23,9 +27,29 @@ except Exception:
 
 # configure logging
 # define a console handler
+class ConsoleFormatter(logging.Formatter):
+    """
+    The console log outputs will be colorized with this formatter,
+    along simplifications so that only the data a user needs will be shown.
+    """
+    COLORS = {
+        "DEBUG": Style.DIM + Fore.BLUE,
+        "INFO": Style.NORMAL + Fore.GREEN,
+        "WARNING": Style.BRIGHT + Fore.YELLOW,
+        "ERROR": Style.BRIGHT + Fore.RED,
+        "CRITICAL": Style.BRIGHT + Fore.MAGENTA,
+    }
+
+    def format(self, record):
+        log_message = super().format(record)
+        log_level = record.levelname
+
+        color = self.COLORS.get(log_level, '')
+        return f"{color}{log_message}"
+
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(logging.Formatter('%(message)s'))
+console_handler.setFormatter(ConsoleFormatter())
 
 # degfine a file handler
 file_handler = TimedRotatingFileHandler(
@@ -73,12 +97,6 @@ class Logger:
         """
         self.logger = logging.getLogger(name)
 
-        # install colored log output for our logger instances
-        #coloredlogs.install(level="INFO", logger=self.logger)
-
-        # install colored log output for external 'root' instances such as pycord
-        #coloredlogs.install(level=None)
-        
     async def debug(self, message):
         """
         Log a debug message.
@@ -108,4 +126,3 @@ class Logger:
         Log a critical message.
         """
         self.logger.critical(message)
-

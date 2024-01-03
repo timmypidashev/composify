@@ -1,6 +1,6 @@
 # db
-from os.path import isfile
 from sqlite3 import connect
+import os
 import asyncio
 import asqlite
 
@@ -8,17 +8,24 @@ import asqlite
 from . import log
 log = log.Logger("db")
 
-DB_PATH = "/etc/composify/composify.db"
-BUILD_PATH = "./composify/db.sql"
+# Identify the location of the .config folder for composify
+user_home = os.path.expanduser("~")
+config_path = os.path.join(user_home, ".config", "composify")
+
+
+DB_PATH = f"{config_path}/composify.db"
+DB_SCRIPT = """
+CREATE TABLE IF NOT EXISTS configuration(
+    Project INTEGER PRIMARY KEY
+);
+"""
 
 async def build():
     async with asqlite.connect(DB_PATH) as connection:
         async with connection.cursor() as cursor:
-            if isfile(BUILD_PATH):
-                with open(BUILD_PATH, "r", encoding="utf-8") as script:
-                    await cursor.executescript(script.read())
+            await cursor.executescript(DB_SCRIPT)
 
-                    await log.info("Database built.")
+            await log.info("Database built.")
 
 async def commit():
     async with asqlite.connect(DB_PATH) as connection:

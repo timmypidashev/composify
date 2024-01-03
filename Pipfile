@@ -8,7 +8,6 @@ dev = "python3 -m src.composify"
 
 [packages]
 rapptz-asqlite = "*"
-coloredlogs = "*"
 pyyaml = "*"
 python-dotenv = "*"
 colorama = "*"
