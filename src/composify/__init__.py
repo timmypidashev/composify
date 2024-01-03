@@ -49,6 +49,8 @@ async def parse_arguments():
     """
     Parse arguments. If none inputted, default to '--help'.
     """
+    await log.debug(f"Running version {__version__}")
+
     args = parser.parse_args()
 
     await log.info("test")

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import logging
 import logging.config
 import coloredlogs
+from logging.handlers import TimedRotatingFileHandler
 
 user_home = os.path.expanduser("~")
 config_path = os.path.join(user_home, ".config", "composify")
@@ -21,52 +22,44 @@ except Exception:
     print("Only posix based systems are supported at the moment!")
 
 # configure logging
-log_config = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            "datefmt": "[%Y-%m-%d %H:%M:%S]"
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": "DEBUG",
-            "formatter": "default",
-            "stream": "ext://sys.stdout"
-        },
-        "file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "level": "DEBUG",
-            "formatter": "default",
-            "when": "D",
-            "backupCount": 0,
-            "filename": log_file
-        }
-    },
-    "loggers": {
-        "root": {
-            "level": "INFO",
-            "handlers": ["console", "file"]
-        },
-        "composify": {
-            "level": "DEBUG",
-            "handlers": ["console", "file"],
-            "propagate": False,
-            "qualname": "client"
-        },
-        "db": {
-            "level": "DEBUG",
-            "handlers": ["console", "file"],
-            "propagate": False,
-            "qualname": "db"
-        }
-    }
-}
+# define a console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(logging.Formatter('%(message)s'))
 
-logging.config.dictConfig(log_config)
+# degfine a file handler
+file_handler = TimedRotatingFileHandler(
+    filename=log_file,
+    when="D",
+    backupCount=0,
+    encoding="utf-8",
+    delay=False,
+    utc=False
+)
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+)
+
+# add handlers
+logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().addHandler(file_handler)
+    
+# create composify logger
+composify_logger = logging.getLogger("composify")
+composify_logger.setLevel(logging.DEBUG)
+composify_logger.addHandler(console_handler)
+composify_logger.addHandler(file_handler)
+composify_logger.propagate = False
+
+# create db logger
+db_logger = logging.getLogger("db")
+db_logger.setLevel(logging.DEBUG)
+db_logger.addHandler(file_handler)
+db_logger.propagate = False
 
 
 class Logger:
@@ -81,10 +74,10 @@ class Logger:
         self.logger = logging.getLogger(name)
 
         # install colored log output for our logger instances
-        coloredlogs.install(level="INFO", logger=self.logger)
+        #coloredlogs.install(level="INFO", logger=self.logger)
 
         # install colored log output for external 'root' instances such as pycord
-        coloredlogs.install(level=None)
+        #coloredlogs.install(level=None)
         
     async def debug(self, message):
         """
