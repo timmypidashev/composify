@@ -35,15 +35,24 @@ async def define_arguments():
     """
     Define command-line arguments.
     """
-    
     # commands
     subparsers = parser.add_subparsers(dest='subcommand')
-    init = subparsers.add_parser("init",)
+    help_parser = subparsers.add_parser("help")
+    init_parser = subparsers.add_parser("init")
+    build_parser = subparsers.add_parser("build")
+    run_parser = subparsers.add_parser("run")
+    bump_parser = subparsers.add_parser("bump")
+    push_parser = subparsers.add_parsers("push")
 
 async def help_message():
-    #TODO: Literally print a help command instead of relying on argparse
-    pass
-
+    print(f"{__title__} ({__summary__}) v{__version__}")
+    print("")
+    print("Commands:")
+    print("init:       initialize a new project")
+    print("build:      build project")
+    print("run:        run project"
+    print("bump:       bump project version")
+    print("push:       push image")
 
 async def parse_arguments():
     """
@@ -52,6 +61,10 @@ async def parse_arguments():
     await log.debug(f"Running version {__version__}")
 
     args = parser.parse_args()
+
+    if args.subcommand == "help":
+        await help_message()
+        return
 
     await log.info("test")
 
