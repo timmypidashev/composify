@@ -126,3 +126,19 @@ class Logger:
         Log a critical message.
         """
         self.logger.critical(message)
+
+    @staticmethod
+    def check_debug_logging(debug):
+        """
+        * Set the logging level from 'INFO' to 'DEBUG' if True
+        * Logs 'db' not only to file, but console as well.
+
+        Args:
+            debug (bool): set logging to debug or not? (e.g., True or False)
+        """
+        if debug:
+            # Set the level for the console handler
+            console_handler.setLevel(logging.DEBUG)
+
+        else:
+            return
