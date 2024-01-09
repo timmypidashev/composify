@@ -41,14 +41,15 @@ async def define_arguments():
     """
     # top level args
     parser.add_argument("-v", "--version", default=defaults["version"], help="output version information and exit", action="store_true")
-    parser.add_argument("-vv", "--verbose", default=defaults["verbose"], help="run with verbose output", action="store_true")
+    parser.add_argument("-vv", "--verbose", default=defaults["verbose"], help="run with verbose output shown", action="store_true")
+    # TODO: Add hidden dev arg with argparse.SUPPRESS
 
     # subparsers
     subparsers = parser.add_subparsers(title="commands", dest='subcommand')
     
     # init subparser and args
     init_parser = subparsers.add_parser("init", help="initialize a new project")
-    init_parser.add_argument("project_name", type=str, default=defaults["project_name"], help="the name of the project")
+    init_parser.add_argument("project_name", type=str, nargs="?", default=defaults["project_name"], help="the name of the project")
 
     # build subparser and args
     build_parser = subparsers.add_parser("build", help="build project")
