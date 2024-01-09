@@ -4,7 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [scripts]
-dev = "python3 -m src.composify"
+dev = "python3 -m src.composify -d"
+build = ""
+publish = ""
 
 [packages]
 rapptz-asqlite = "*"
