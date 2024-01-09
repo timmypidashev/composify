@@ -79,6 +79,13 @@ composify_logger.addHandler(console_handler)
 composify_logger.addHandler(file_handler)
 composify_logger.propagate = False
 
+# create interactions logger
+interactions_logger = logging.getLogger("interactions")
+interactions_logger.setLevel(logging.DEBUG)
+interactions_logger.addHandler(console_handler)
+interactions_logger.addHandler(file_handler)
+interactions_logger.propogate = False
+
 # create db logger
 db_logger = logging.getLogger("db")
 db_logger.setLevel(logging.DEBUG)

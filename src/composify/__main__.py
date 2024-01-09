@@ -1,4 +1,5 @@
 import composify
+import asyncio
 
 if __name__ == "__main__":
-    composify.run_as_module()
+    asyncio.run(composify.run_as_module())

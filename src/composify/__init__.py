@@ -5,6 +5,7 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2022-present Timothy Pidashev"
 __version__ = "0.1.0"
 
+from . import interactions
 from . import errors
 from . import log
 from . import db
@@ -22,29 +23,43 @@ the user defined arguments dict.
 """
 defaults = {
     "version": False,
-    "verbose": False
+    "verbose": False,
+    "command": "init",
+    "project_name": None
 }
-arguments = dict()
 
 # Use the custom formatter
 parser = argparse.ArgumentParser(
-    #add_help=False  # Disable automatic help display for the main parser
+    prog=__title__,
+    description=__summary__,
+    usage=argparse.SUPPRESS
 )
 
 async def define_arguments():
     """
     Define command-line arguments.
     """
-    # args
+    # top level args
     parser.add_argument("-v", "--version", default=defaults["version"], help="output version information and exit", action="store_true")
     parser.add_argument("-vv", "--verbose", default=defaults["verbose"], help="run with verbose output", action="store_true")
 
-    # subparser args
-    subparsers = parser.add_subparsers(dest='subcommand')
+    # subparsers
+    subparsers = parser.add_subparsers(title="commands", dest='subcommand')
+    
+    # init subparser and args
     init_parser = subparsers.add_parser("init", help="initialize a new project")
+    init_parser.add_argument("project_name", type=str, default=defaults["project_name"], help="the name of the project")
+
+    # build subparser and args
     build_parser = subparsers.add_parser("build", help="build project")
+
+    # run subparser and args
     run_parser = subparsers.add_parser("run", help="run project")
+
+    # bump subparser and args
     bump_parser = subparsers.add_parser("bump", help="bump project version")
+
+    # push subparser and args
     push_parser = subparsers.add_parser("push", help="push image")
 
 async def parse_arguments():
@@ -66,7 +81,14 @@ async def parse_arguments():
 
     await log.debug(f"Running version {__version__}")
 
-def run_as_module():
-    asyncio.run(db.build())
-    asyncio.run(define_arguments())
-    asyncio.run(parse_arguments())
+    # command args
+    command = args.subcommand
+    interaction = getattr(interactions, command)
+
+    return user_input, interaction
+
+async def run_as_module():
+    await db.build()
+    await define_arguments()
+    user_input, interaction = await parse_arguments()
+    await interaction(user_input, defaults)
