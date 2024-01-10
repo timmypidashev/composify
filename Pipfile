@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [scripts]
-dev = "python3 -m src.composify -d"
+dev = "python3 -m src.composify -d -vv"
 build = "python3 setup.py sdist bdist"
 clean = "python3 setup.py clean --all"
 publish = ""

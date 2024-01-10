@@ -12,21 +12,6 @@ from logging.handlers import TimedRotatingFileHandler
 # Initialize colorama to work with ANSI escape codes
 init(autoreset=True)
 
-# Make sure we have a proper log output path
-user_home = os.path.expanduser("~")
-config_path = os.path.join(user_home, ".config", "composify")
-log_file = f"{config_path}/composify.log"
-
-try:
-    if not os.path.exists(config_path):
-        os.makedirs(config_path)
-
-except Exception:
-    # TODO: convert to error raised from composify.errors
-    print("Only posix based systems are supported at the moment!")
-
-# configure logging
-# define a console handler
 class ConsoleFormatter(logging.Formatter):
     """
     The console log outputs will be colorized with this formatter,
@@ -47,56 +32,14 @@ class ConsoleFormatter(logging.Formatter):
         color = self.COLORS.get(log_level, '')
         return f"{color}{log_message}"
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(ConsoleFormatter())
-
-# degfine a file handler
-file_handler = TimedRotatingFileHandler(
-    filename=log_file,
-    when="D",
-    backupCount=0,
-    encoding="utf-8",
-    delay=False,
-    utc=False
-)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(
-    logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
-)
-
-# add handlers
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger().addHandler(file_handler)
-    
-# create composify logger
-composify_logger = logging.getLogger("composify")
-composify_logger.setLevel(logging.DEBUG)
-composify_logger.addHandler(console_handler)
-composify_logger.addHandler(file_handler)
-composify_logger.propagate = False
-
-# create interactions logger
-interactions_logger = logging.getLogger("interactions")
-interactions_logger.setLevel(logging.DEBUG)
-interactions_logger.addHandler(console_handler)
-interactions_logger.addHandler(file_handler)
-interactions_logger.propogate = False
-
-# create db logger
-db_logger = logging.getLogger("db")
-db_logger.setLevel(logging.DEBUG)
-db_logger.addHandler(file_handler)
-db_logger.propagate = False
-
-
 class Logger:
     """
     Logger class.
     """
+
+    # NOTE: console_handler is defined here so 
+    # that it can later be manipulated between classmethods!
+    console_handler = logging.StreamHandler()
 
     def __init__(self, name):
         """
@@ -134,8 +77,85 @@ class Logger:
         """
         self.logger.critical(message)
 
-    @staticmethod
-    def check_debug_logging(debug):
+    @classmethod
+    def configure_log_path(cls, dev):
+        """
+        Make sure we have a proper log output path,
+        taking into account dev builds are run in a 
+        virtual environment, whereas prod builds are
+        run on a unix-like system.
+        """
+        if dev:
+            config_path = os.path.join(".dev")
+            log_file = f"{config_path}/composify.dev.log"
+
+        else:
+            user_home = os.path.expanduser("~")
+            config_path = os.path.join(user_home, ".config", "composify")
+            log_file = f"{config_path}/composify.log"
+
+        try:
+            if not os.path.exists(config_path):
+                os.makedirs(config_path)
+
+        except Exception:
+            # TODO: convert to error raised from composify.errors
+            print("Only posix based systems are supported at the moment!")
+
+        finally:
+            return log_file
+    
+    @classmethod
+    def configure_handlers(cls, log_file):
+        """
+        Create all handlers for the logger.
+        """
+        cls.console_handler.setLevel(logging.INFO)
+        cls.console_handler.setFormatter(ConsoleFormatter())
+
+        # define a file handler
+        file_handler = TimedRotatingFileHandler(
+            filename=log_file,
+            when="D",
+            backupCount=0,
+            encoding="utf-8",
+            delay=False,
+            utc=False
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S"
+            )
+        )
+
+        # add handlers
+        logging.getLogger().setLevel(logging.INFO)
+        logging.getLogger().addHandler(file_handler)
+        
+        # create composify logger
+        composify_logger = logging.getLogger("composify")
+        composify_logger.setLevel(logging.DEBUG)
+        composify_logger.addHandler(cls.console_handler)
+        composify_logger.addHandler(file_handler)
+        composify_logger.propagate = False
+
+        # create interactions logger
+        interactions_logger = logging.getLogger("interactions")
+        interactions_logger.setLevel(logging.DEBUG)
+        interactions_logger.addHandler(cls.console_handler)
+        interactions_logger.addHandler(file_handler)
+        interactions_logger.propogate = False
+
+        # create db logger
+        db_logger = logging.getLogger("db")
+        db_logger.setLevel(logging.DEBUG)
+        db_logger.addHandler(file_handler)
+        db_logger.propagate = False
+
+    @classmethod
+    def check_debug_logging(cls, debug):
         """
         * Set the logging level from 'INFO' to 'DEBUG' if True
         * Logs 'db' not only to file, but console as well.
@@ -145,7 +165,7 @@ class Logger:
         """
         if debug:
             # Set the level for the console handler
-            console_handler.setLevel(logging.DEBUG)
+            cls.console_handler.setLevel(logging.DEBUG)
 
         else:
             return

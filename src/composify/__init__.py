@@ -70,6 +70,8 @@ async def run_as_module():
     # Setup logging
     from . import log
     log = log.Logger("composify")
+    log_path = log.configure_log_path(user_input["dev"])
+    log.configure_handlers(log_path)
     log.check_debug_logging(user_input["verbose"])
 
     # Setup db
