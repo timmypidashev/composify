@@ -1,6 +1,5 @@
 ### Python ###
 __pycache__
 dist
-
-### Tox ###
-.tox
+build
+*.egg-info

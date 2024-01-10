@@ -5,7 +5,8 @@ name = "pypi"
 
 [scripts]
 dev = "python3 -m src.composify -d"
-build = ""
+build = "python3 setup.py sdist bdist"
+clean = "python3 setup.py clean --all"
 publish = ""
 
 [packages]
@@ -16,6 +17,8 @@ colorama = "*"
 inquirer = "*"
 
 [dev-packages]
+pipfile = "*"
+twine = "*"
 
 [requires]
 python_version = "3.11"
