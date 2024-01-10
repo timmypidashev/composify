@@ -89,5 +89,6 @@ async def run_as_module():
         command = "init"
 
     # pass args to the proper interaction
+    interactions = interactions.Interaction()
     interaction = getattr(interactions, command)
     await interaction(user_input, defaults)
