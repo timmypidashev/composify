@@ -5,9 +5,6 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2022-present Timothy Pidashev"
 __version__ = "0.1.0"
 
-from . import interactions
-from . import errors
-
 import asyncio
 import argparse
 import sys
@@ -76,7 +73,12 @@ async def run_as_module():
 
     # Setup db
     from . import db
-    await db.build()
+    db = db.DB()
+    await db.initialize(user_input["dev"])
+
+    # Other internal imports go here
+    from . import interactions
+    from . import errors
 
     if args.version:
         await log.info(f"{__title__} v{__version__}")

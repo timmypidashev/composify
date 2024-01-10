@@ -6,88 +6,106 @@ import asqlite
 
 # custom utilities and setup
 from . import log
-log = log.Logger("db")
 
-# Identify the location of the .config folder for composify
-user_home = os.path.expanduser("~")
-config_path = os.path.join(user_home, ".config", "composify")
+class DB:
+    """
+    Database class.
+    """
+    log = log.Logger("db")
+    DB_PATH="" # NOTE: The DB_PATH is defined in a classmethod below!
+    DB_SCRIPT = """
+    CREATE TABLE IF NOT EXISTS configuration(
+        Project INTEGER PRIMARY KEY
+    );
+    """
 
+    def __init__(self):
+        pass
 
-DB_PATH = f"{config_path}/composify.db"
-DB_SCRIPT = """
-CREATE TABLE IF NOT EXISTS configuration(
-    Project INTEGER PRIMARY KEY
-);
-"""
+    @classmethod
+    async def initialize(cls, dev):
+        if dev:
+            config_path = os.path.join(".dev")
+            cls.DB_PATH=f"{config_path}/composify.dev.db"
+        else:
+            user_home = os.path.expanduser("~")
+            config_path = os.path.join(user_home, ".config", "composify")
+            cls.DB_PATH = f"{config_path}/composify.db"
+        
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.executescript(cls.DB_SCRIPT)
 
-async def build():
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.executescript(DB_SCRIPT)
+                await cls.log.info("Database built.")
 
-            await log.info("Database built.")
+    @classmethod
+    async def commit():
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            await connection.commit()
 
-async def commit():
-    async with asqlite.connect(DB_PATH) as connection:
-        await connection.commit()
+            await cls.log.info("Committed to database.")
 
-        await log.info("Committed to database.")
+    @classmethod
+    async def close():
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            await connection.close()
 
-async def close():
-    async with asqlite.connect(DB_PATH) as connection:
-        await connection.close()
+            await cls.log.info("Closed database connection.")
 
-        await log.info("Closed database connection.")
+    @classmethod
+    async def field(command, *values):
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(command, tuple(values))
+                
+                await cls.log.info(f"Executed {command} with {values}.")
 
-async def field(command, *values):
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.execute(command, tuple(values))
-            
-            await log.info(f"Executed {command} with {values}.")
+                if (fetch := await cursor.fetchone()) is not None: 
+                    await cls.log.info(f"Fetched {fetch}.")
+                    return fetch[0]
 
-            if (fetch := await cursor.fetchone()) is not None: 
-                await log.info(f"Fetched {fetch}.")
-                return fetch[0]
+    @classmethod
+    async def record(command, *values):
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(command, tuple(values))
 
+                await cls.log.info(f"Executed {command} with {values}.")
+                
+                return await cursor.fetchone()
 
-async def record(command, *values):
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.execute(command, tuple(values))
+    @classmethod
+    async def records(command, *values):
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(command, tuple(values))
 
-            await log.info(f"Executed {command} with {values}.")
-            
-            return await cursor.fetchone()
+                await cls.log.info(f"Executed {command} with {values}.")
 
-async def records(command, *values):
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.execute(command, tuple(values))
+                return await cursor.fetchall()
 
-            await log.info(f"Executed {command} with {values}.")
+    @classmethod
+    async def column(command, *values):
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(command, tuple(values))
 
-            return await cursor.fetchall()
+                await cls.log.info(f"Executed {command} with {values}.")
 
-async def column(command, *values):
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.execute(command, tuple(values))
+                return [item[0] for item in await cursor.fetchall()]
 
-            await log.info(f"Executed {command} with {values}.")
+    @classmethod
+    async def execute(command, *values):
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(command, tuple(values))
 
-            return [item[0] for item in await cursor.fetchall()]
+                await cls.log.info(f"Executed {command} with {values}.")
 
-async def execute(command, *values):
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.execute(command, tuple(values))
+    @classmethod
+    async def multiexec(command, valueset):
+        async with asqlite.connect(cls.DB_PATH) as connection:
+            async with connection.cursor() as cursor:
+                await cursor.executemany(command, valueset)
 
-            await log.info(f"Executed {command} with {values}.")
-
-async def multiexec(command, valueset):
-    async with asqlite.connect(DB_PATH) as connection:
-        async with connection.cursor() as cursor:
-            await cursor.executemany(command, valueset)
-
-            await log.info(f"Executed {command} with {valueset}.")
+                await cls.log.info(f"Executed {command} with {valueset}.")
