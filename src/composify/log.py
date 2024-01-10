@@ -37,9 +37,13 @@ class Logger:
     Logger class.
     """
 
-    # NOTE: console_handler is defined here so 
+    # NOTE: console_handler and file_handler is defined here so 
     # that it can later be manipulated between classmethods!
+    # NOTE: file_handler is 'None' here so that the log_file
+    # can be properly added below once the Logger class knows
+    # where to output logs!
     console_handler = logging.StreamHandler()
+    file_handler = None 
 
     def __init__(self, name):
         """
@@ -110,11 +114,9 @@ class Logger:
         """
         Create all handlers for the logger.
         """
-        cls.console_handler.setLevel(logging.INFO)
-        cls.console_handler.setFormatter(ConsoleFormatter())
 
-        # define a file handler
-        file_handler = TimedRotatingFileHandler(
+        # configure handlers
+        cls.file_handler = TimedRotatingFileHandler(
             filename=log_file,
             when="D",
             backupCount=0,
@@ -122,8 +124,10 @@ class Logger:
             delay=False,
             utc=False
         )
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(
+        cls.console_handler.setLevel(logging.INFO)
+        cls.console_handler.setFormatter(ConsoleFormatter())
+        cls.file_handler.setLevel(logging.DEBUG)
+        cls.file_handler.setFormatter(
             logging.Formatter(
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                 datefmt="%Y-%m-%d %H:%M:%S"
@@ -132,26 +136,25 @@ class Logger:
 
         # add handlers
         logging.getLogger().setLevel(logging.INFO)
-        logging.getLogger().addHandler(file_handler)
+        logging.getLogger().addHandler(cls.file_handler)
         
         # create composify logger
         composify_logger = logging.getLogger("composify")
         composify_logger.setLevel(logging.DEBUG)
         composify_logger.addHandler(cls.console_handler)
-        composify_logger.addHandler(file_handler)
+        composify_logger.addHandler(cls.file_handler)
         composify_logger.propagate = False
 
         # create interactions logger
         interactions_logger = logging.getLogger("interactions")
         interactions_logger.setLevel(logging.DEBUG)
         interactions_logger.addHandler(cls.console_handler)
-        interactions_logger.addHandler(file_handler)
         interactions_logger.propogate = False
 
         # create db logger
         db_logger = logging.getLogger("db")
         db_logger.setLevel(logging.DEBUG)
-        db_logger.addHandler(file_handler)
+        db_logger.addHandler(cls.file_handler)
         db_logger.propagate = False
 
     @classmethod
