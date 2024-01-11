@@ -40,12 +40,11 @@ class Interaction:
     async def init(cls, user_input, defaults):
         await cls.log.debug("Initializing project")
         await cls.check_for_git(user_input)
-        #project_name = await cls.get_project_name(user_input)
                                                   
         questions = [
             inquirer.Text("project_name",
                 message="Project name",
-                default="test",
+                default=os.path.basename(os.getcwd()),
                 validate = lambda _, x: re.match('^[a-zA-Z0-9_-]+$', x),
             ),
         ]
@@ -76,21 +75,3 @@ class Interaction:
         else:
             await cls.log.error("Project must be a git repository!")
             sys.exit()
-
-    @classmethod
-    async def get_project_name(cls, user_input):
-        """
-        Obtain the name of the current
-        git repository and return to caller.
-
-        dev: determine whether running in dev mode,
-        if so only check if a .dev file exists.
-        """
-
-        if not user_input["dev"]:
-            repo = Repo(os.getcwd())
-            repo_name = os.path.basename(repo.git_dir)
-        
-        else:
-
-            return repo_name
