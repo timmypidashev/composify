@@ -70,6 +70,10 @@ async def run_as_module():
     log_path = log.configure_log_path(user_input["dev"])
     log.configure_handlers(log_path)
     log.check_debug_logging(user_input["verbose"])
+    
+    # Just some debug logging
+    if user_input["dev"]:
+        await log.debug("running in dev mode")
 
     # Setup db
     from . import db
@@ -78,7 +82,6 @@ async def run_as_module():
 
     # Other internal imports go here
     from . import interactions
-    from . import errors
 
     if args.version:
         await log.info(f"{__title__} v{__version__}")

@@ -16,6 +16,7 @@ pyyaml = "*"
 python-dotenv = "*"
 colorama = "*"
 inquirer = "*"
+GitPython = "*"
 
 [dev-packages]
 pipfile = "*"

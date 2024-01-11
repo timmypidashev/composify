@@ -3,6 +3,7 @@ Composify user interactions
 """
 
 import inquirer
+from git import Repo
 from blessed import Terminal
 import re
 import os
@@ -38,8 +39,9 @@ class Interaction:
     @classmethod
     async def init(cls, user_input, defaults):
         await cls.log.debug("Initializing project")
-        await cls.check_for_git()
-
+        await cls.check_for_git(user_input)
+        #project_name = await cls.get_project_name(user_input)
+                                                  
         questions = [
             inquirer.Text("project_name",
                 message="Project name",
@@ -52,15 +54,43 @@ class Interaction:
         return user_input
 
     @classmethod
-    async def check_for_git(cls):
+    async def check_for_git(cls, user_input):
         """
         Get the directory from which the script was called
         and check to make sure its a git repository.
         """
+        # NOTE: The '.dev' directory is created in 'example' by the
+        # logger class before interactions is instanced, so as a bonus 
+        # there is no reason for the '.dev' dir to be kept in version control.
+
         current_directory = os.getcwd()
 
-        if os.path.isdir(os.path.join(current_directory, ".git")):
-            await cls.log.debug("Check for git version control passed")
+        if not user_input["dev"]:
+            if os.path.isdir(os.path.join(current_directory, ".git")):
+                await cls.log.debug("Check for git version control passed")
 
+        elif user_input["dev"]:
+            if os.path.exists(".dev"): 
+                await cls.log.debug("Check for git version control passed")
+        
         else:
-            await cls.log.error("not a git repo")
+            await cls.log.error("Project must be a git repository!")
+            sys.exit()
+
+    @classmethod
+    async def get_project_name(cls, user_input):
+        """
+        Obtain the name of the current
+        git repository and return to caller.
+
+        dev: determine whether running in dev mode,
+        if so only check if a .dev file exists.
+        """
+
+        if not user_input["dev"]:
+            repo = Repo(os.getcwd())
+            repo_name = os.path.basename(repo.git_dir)
+        
+        else:
+
+            return repo_name
