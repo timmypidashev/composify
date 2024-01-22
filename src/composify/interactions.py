@@ -10,6 +10,7 @@ import uuid
 import re
 import os
 import sys
+import yaml
 
 from . import log
 
@@ -82,7 +83,7 @@ class Interaction:
 
         user_answers = inquirer.prompt(questions, theme=InquirerTheme())
 
-        # initialize project
+        # commit details to db
         await instance.db.execute(
             "INSERT into projects (PROJECT, HASH, DESCRIPTION) VALUES (?, ?, ?)",
             user_answers["project_name"],
@@ -91,7 +92,42 @@ class Interaction:
         )
         await instance.db.commit()
 
+        # create project.yml file
+        with open("./project.yml", "w") as project_file:
+            data = {
+                "project": {
+                    "name": user_answers["project_name"],
+                    "version": "0.0.0",
+                    "description": user_answers["project_description"],
+                    "license": "MIT"
+                },
+                "containers": {
+                    "example": {
+                        "version": "0.0.0",
+                        "description": "An example container setup"
+                    }
+                }
+            }
+            for block_name, block_content in data.items():
+                yaml.dump({block_name: block_content}, project_file, default_flow_style=False, sort_keys=False)
+                if block_name != list(data.keys())[-1]:
+                    project_file.write("\n")
 
+    @classmethod
+    async def build(cls, instance):
+        pass
+
+    @classmethod
+    async def run(cls, instance):
+        pass
+
+    @classmethod
+    async def bump(cls, instance):
+        pass
+
+    @classmethod 
+    async def push(cls, instance):
+        pass
 
     @classmethod
     async def check_for_git(cls, instance):
