@@ -5,6 +5,8 @@ Composify user interactions
 import inquirer
 from git import Repo
 from blessed import Terminal
+import hashlib
+import uuid
 import re
 import os
 import sys
@@ -45,13 +47,15 @@ class Interaction:
     """
     log = log.Logger("interactions")
 
-    def __init__(self):
-        pass
+    def __init__(self, user_input, defaults, db):
+        self.user_input = user_input
+        self.defaults = defaults
+        self.db = db
 
     @classmethod
-    async def init(cls, user_input, defaults):
+    async def init(cls, instance):
         await cls.log.debug("Initializing project")
-        await cls.check_for_git(user_input)
+        await cls.check_for_git(instance)
         dev_file, prod_file = await cls.check_for_compose()
                                                   
         questions = [
@@ -60,17 +64,37 @@ class Interaction:
                 default=os.path.basename(os.getcwd()),
                 validate = lambda _, x: re.match('^[a-zA-Z0-9_-]+$', x),
             ),
+            inquirer.Text("project_description",
+                message="Project description",
+                validate = lambda _, x: x.strip() != "",
+            ),
             inquirer.Text("compose_dev_file",
-                message="Current compose dev environment filename",
+                message="Current compose dev environment file",
                 default=dev_file,
+                validate=lambda _, x: re.match('^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*(\.yml|\.yaml)$', x) is not None and x.strip() != "",
+            ),
+            inquirer.Text("compose_prod_file",
+                message="Current compose prod environment file",
+                default=prod_file,
+                validate=lambda _, x: re.match('^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*(\.yml|\.yaml)$', x) is not None and x.strip() != "",
             ),
         ]
 
-        user_input = inquirer.prompt(questions, theme=InquirerTheme())
-        return user_input
+        user_answers = inquirer.prompt(questions, theme=InquirerTheme())
+
+        # initialize project
+        await instance.db.execute(
+            "INSERT into projects (PROJECT, HASH, DESCRIPTION) VALUES (?, ?, ?)",
+            user_answers["project_name"],
+            hashlib.sha256(str(uuid.uuid4()).encode()).hexdigest()[:8],
+            user_answers["project_description"]
+        )
+        await instance.db.commit()
+
+
 
     @classmethod
-    async def check_for_git(cls, user_input):
+    async def check_for_git(cls, instance):
         """
         Get the directory from which the script was called
         and check to make sure its a git repository.
@@ -81,11 +105,11 @@ class Interaction:
 
         current_directory = os.getcwd()
 
-        if not user_input["dev"]:
+        if not instance.user_input["dev"]:
             if os.path.isdir(os.path.join(current_directory, ".git")):
                 await cls.log.debug("Check for git version control passed")
 
-        elif user_input["dev"]:
+        elif instance.user_input["dev"]:
             if os.path.exists(".dev"): 
                 await cls.log.debug("Check for git version control passed")
         
