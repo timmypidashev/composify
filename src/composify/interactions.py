@@ -2,9 +2,11 @@
 Composify user interactions
 """
 
+from __future__ import unicode_literals
 import inquirer
 from git import Repo
 from blessed import Terminal
+from halo import Halo
 import hashlib
 import uuid
 import re
@@ -22,6 +24,7 @@ class InquirerTheme(inquirer.themes.Theme):
 
     def __init__(self):
         super().__init__()
+        
         # Question
         self.Question.mark_color = self.term.yellow
         self.Question.brackets_color = self.term.bright_green
@@ -47,6 +50,7 @@ class Interaction:
     Command line interface interactions.
     """
     log = log.Logger("interactions")
+    spinner = Halo(text="", color="green", spinner="dots")
 
     def __init__(self, user_input, defaults, db):
         self.user_input = user_input
@@ -57,6 +61,12 @@ class Interaction:
     async def init(cls, instance):
         await cls.log.debug("Initializing project")
         await cls.check_for_git(instance)
+        
+        # TODO: Integrate project hash with project.yml as a sort of lock!
+        if os.path.exists("./project.yml"):
+            await cls.log.error("Project already initialized in this repository!")
+            sys.exit()
+        
         dev_file, prod_file = await cls.check_for_compose()
                                                   
         questions = [
@@ -83,6 +93,9 @@ class Interaction:
 
         user_answers = inquirer.prompt(questions, theme=InquirerTheme())
 
+        cls.spinner.start()
+        cls.spinner.text = "Initializing project"
+
         # commit details to db
         await instance.db.execute(
             "INSERT into projects (PROJECT, HASH, DESCRIPTION) VALUES (?, ?, ?)",
@@ -93,6 +106,7 @@ class Interaction:
         await instance.db.commit()
 
         # create project.yml file
+        # TODO: Generate a project.toml based on already existing docker compose configs if any.
         with open("./project.yml", "w") as project_file:
             data = {
                 "project": {
@@ -112,6 +126,9 @@ class Interaction:
                 yaml.dump({block_name: block_content}, project_file, default_flow_style=False, sort_keys=False)
                 if block_name != list(data.keys())[-1]:
                     project_file.write("\n")
+
+        cls.spinner.text = "Initialized project"
+        cls.spinner.succeed()
 
     @classmethod
     async def build(cls, instance):

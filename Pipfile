@@ -18,6 +18,7 @@ python-dotenv = "*"
 colorama = "*"
 inquirer = "*"
 GitPython = "*"
+halo = "*"
 
 [dev-packages]
 pipfile = "*"
