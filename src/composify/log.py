@@ -136,7 +136,6 @@ class Logger:
 
         # add handlers
         logging.getLogger().setLevel(logging.INFO)
-        logging.getLogger().addHandler(cls.file_handler)
         
         # create composify logger
         composify_logger = logging.getLogger("composify")
