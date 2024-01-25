@@ -137,7 +137,7 @@ class Interaction:
         with open("project.yml", "r") as project_file:
             data = yaml.safe_load(project_file)
 
-        project = data.get("project"), [])
+        project = data.get("project", [])
         containers = data.get("containers", [])
 
         # TODO: Create a for loop which builds every image found in 'project.yml' one at a time

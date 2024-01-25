@@ -161,7 +161,7 @@ class Logger:
 
         # create build logger
         build_logger = logging.getLogger("build")
-        build_logger = logging.setLevel(logging.DEBUG)
+        build_logger.setLevel(logging.DEBUG)
         build_logger.addHandler(cls.console_handler)
         build_logger.addHandler(cls.file_handler)
         build_logger.propogate = False
