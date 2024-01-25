@@ -44,7 +44,6 @@ class InquirerTheme(inquirer.themes.Theme):
         self.Checkbox.unselected_icon = "[ ]"
         self.Checkbox.locked_option_color = self.term.gray50
 
-
 class Interaction:
     """
     Command line interface interactions.
@@ -95,6 +94,7 @@ class Interaction:
 
         # create project.yml file
         # TODO: Generate a project.toml based on already existing docker compose configs if any.
+        # NOTE: This will be determined in the template class.
         with open("./project.yml", "w") as project_file:
             data = {
                 "project": {
@@ -120,7 +120,31 @@ class Interaction:
 
     @classmethod
     async def build(cls, instance):
-        pass
+        await cls.log.debug("Building project")
+
+        # If no project environment was selected, ask the user
+        if instance.user_input["project_environment"] is None:
+            environment = inquirer.list_input(
+                message="What type of build do you need?",
+                choices=["Development", "Production"],
+                carousel=True
+            )
+           
+            instance.user_input["project_environment"] = {"Development": "dev", "Production": "prod"}.get(environment)
+
+        # Retrieve list of containers and their data from 'project.yml'
+        with open("project.yml", "r") as project_file:
+            data = yaml.safe_load(project_file)
+
+        project = data.get("project"), [])
+        containers = data.get("containers", [])
+
+        # TODO: Create a for loop which builds every image found in 'project.yml' one at a time
+        cls.spinner.start()
+        cls.spinner.text = "Building image: {placeholder}"
+
+        cls.spinner.text = "Finished building images!"
+        cls.spinner.succeed()
 
     @classmethod
     async def run(cls, instance):

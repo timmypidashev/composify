@@ -15,12 +15,19 @@ Composify argument defaults dict and
 the user defined arguments dict.
 """
 defaults = {
+    # top level args
     "version": False,
     "verbose": False,
     "headless": False,
     "dev": False,
     "command": None,
-    "project_name": None
+
+    # init subparser
+    "project_name": None,
+
+    # build subparser
+    "project_environment": None,
+    "clean": False,
 }
 
 # Use the custom formatter
@@ -38,6 +45,7 @@ async def define_arguments():
     parser.add_argument("-v", "--version", default=defaults["version"], help="output version information and exit", action="store_true")
     parser.add_argument("-vv", "--verbose", default=defaults["verbose"], help="run with verbose output shown", action="store_true")
     parser.add_argument("-d", "--dev", default=defaults["dev"], help=argparse.SUPPRESS, action="store_true")
+    
     # subparsers
     subparsers = parser.add_subparsers(title="commands", dest='subcommand')
     
@@ -47,7 +55,9 @@ async def define_arguments():
 
     # build subparser and args
     build_parser = subparsers.add_parser("build", help="build project")
-
+    build_parser.add_argument("project_environment", type=str, nargs="?", default=defaults["project_environment"], help="the project build environment ['dev', 'prod']")
+    build_parser.add_argument("-c", "--clean", default=defaults["clean"], help="clean previous builds and clear cache", action="store_true")
+    
     # run subparser and args
     run_parser = subparsers.add_parser("run", help="run project")
 

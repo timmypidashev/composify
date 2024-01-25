@@ -1,3 +1,0 @@
-"""
-Composify image builder
-"""

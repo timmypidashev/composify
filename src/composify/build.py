@@ -1,5 +1,5 @@
 """
-Composify environment arguments
+Composify build system
 """
 
 import os
@@ -26,3 +26,6 @@ class Environment:
     @classmethod
     async def export_arguments(cls, container):
         pass
+
+class Builder:
+    pass
