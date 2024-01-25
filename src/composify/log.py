@@ -149,7 +149,22 @@ class Logger:
         interactions_logger = logging.getLogger("interactions")
         interactions_logger.setLevel(logging.DEBUG)
         interactions_logger.addHandler(cls.console_handler)
+        interactions_logger.addHandler(cls.file_handler)
         interactions_logger.propogate = False
+
+        # create env logger
+        env_logger = logging.getLogger("env")
+        env_logger.setLevel(logging.DEBUG)
+        env_logger.addHandler(cls.console_handler)
+        env_logger.addHandler(cls.file_handler)
+        env_logger.propogate = False
+
+        # create build logger
+        build_logger = logging.getLogger("build")
+        build_logger = logging.setLevel(logging.DEBUG)
+        build_logger.addHandler(cls.console_handler)
+        build_logger.addHandler(cls.file_handler)
+        build_logger.propogate = False
 
         # create db logger
         db_logger = logging.getLogger("db")

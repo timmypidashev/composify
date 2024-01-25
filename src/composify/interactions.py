@@ -15,6 +15,7 @@ import sys
 import yaml
 
 from . import log
+from . import build
 
 class InquirerTheme(inquirer.themes.Theme):
     """

@@ -28,4 +28,7 @@ class Environment:
         pass
 
 class Builder:
-    pass
+    log = log.Logger("build")
+
+    def __init__(self):
+        pass
