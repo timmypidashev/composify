@@ -67,8 +67,6 @@ class Interaction:
             await cls.log.error("Project already initialized in this repository!")
             sys.exit()
         
-        dev_file, prod_file = await cls.check_for_compose()
-                                                  
         questions = [
             inquirer.Text("project_name",
                 message="Project name",
@@ -78,16 +76,6 @@ class Interaction:
             inquirer.Text("project_description",
                 message="Project description",
                 validate = lambda _, x: x.strip() != "",
-            ),
-            inquirer.Text("compose_dev_file",
-                message="Current compose dev environment file",
-                default=dev_file,
-                validate=lambda _, x: re.match('^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*(\.yml|\.yaml)$', x) is not None and x.strip() != "",
-            ),
-            inquirer.Text("compose_prod_file",
-                message="Current compose prod environment file",
-                default=prod_file,
-                validate=lambda _, x: re.match('^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*(\.yml|\.yaml)$', x) is not None and x.strip() != "",
             ),
         ]
 
@@ -169,25 +157,3 @@ class Interaction:
         else:
             await cls.log.error("Project must be a git repository!")
             sys.exit()
-
-    @classmethod
-    async def check_for_compose(cls):
-        """
-        Returns any .yml or .yaml files with compose in the file descriptor
-        and classifying them under dev or prod respectively. Faults to None if 
-        nothing is found.
-        """
-        current_directory = os.getcwd()
-        dev_file = None
-        prod_file = None
-
-        for filename in os.listdir(current_directory):
-            if "compose" in filename.lower() and (filename.endswith((".yml", ".yaml"))):
-                base_name = os.path.splitext(filename)[0]
-
-                if any(keyword in base_name.lower() for keyword in ["dev", "development"]) and dev_file is None:
-                    dev_file = filename
-                elif any(keyword in base_name.lower() for keyword in ["prod", "production"]) and prod_file is None:
-                    prod_file = filename
-
-        return dev_file, prod_file
