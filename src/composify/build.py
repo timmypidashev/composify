@@ -32,3 +32,7 @@ class Builder:
 
     def __init__(self):
         pass
+
+    @classmethod
+    async def build(cls, project, image_name, image_details):
+        await cls.log.critical(f"{project}\n{image_name}\n{image_details}")

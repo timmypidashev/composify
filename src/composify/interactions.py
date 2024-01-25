@@ -140,9 +140,13 @@ class Interaction:
         project = data.get("project", [])
         containers = data.get("containers", [])
 
-        # TODO: Create a for loop which builds every image found in 'project.yml' one at a time
         cls.spinner.start()
-        cls.spinner.text = "Building image: {placeholder}"
+        
+        builder = build.Builder()
+
+        for container_name, container_data in containers.items():
+            cls.spinner.text = f"Building image: {container_name}:{instance.user_input['project_environment']}"
+            await builder.build(project, container_name, container_data)
 
         cls.spinner.text = "Finished building images!"
         cls.spinner.succeed()
