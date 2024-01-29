@@ -19,6 +19,7 @@ colorama = "*"
 inquirer = "*"
 GitPython = "*"
 halo = "*"
+pygments = "*"
 
 [dev-packages]
 pipfile = "*"

@@ -140,7 +140,7 @@ class Interaction:
         project = data.get("project", [])
         containers = data.get("containers", [])
 
-        cls.spinner.start()
+        #cls.spinner.start()
         
         builder = build.Builder()
 
@@ -148,8 +148,8 @@ class Interaction:
             cls.spinner.text = f"Building image: {container_name}:{instance.user_input['project_environment']}"
             await builder.build(project, container_name, container_data)
 
-        cls.spinner.text = "Finished building images!"
-        cls.spinner.succeed()
+        #cls.spinner.text = "Finished building images!"
+        #cls.spinner.succeed()
 
     @classmethod
     async def run(cls, instance):
