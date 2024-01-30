@@ -7,6 +7,7 @@ import inquirer
 from git import Repo
 from blessed import Terminal
 from halo import Halo
+import asyncio
 import hashlib
 import uuid
 import re
@@ -121,6 +122,7 @@ class Interaction:
 
     @classmethod
     async def build(cls, instance):
+        # NOTE: The spinner is used within the build class
         await cls.log.debug("Building project")
 
         # If no project environment was selected, ask the user
@@ -140,16 +142,15 @@ class Interaction:
         project = data.get("project", [])
         containers = data.get("containers", [])
 
-        #cls.spinner.start()
-        
         builder = build.Builder()
+        tasks = []
 
         for container_name, container_data in containers.items():
-            cls.spinner.text = f"Building image: {container_name}:{instance.user_input['project_environment']}"
-            await builder.build(project, container_name, container_data)
+            task = asyncio.create_task(builder.build(project, instance.user_input, container_name, container_data))
+            tasks.append(task)
 
-        #cls.spinner.text = "Finished building images!"
-        #cls.spinner.succeed()
+        # Build the containers concurrently
+        await asyncio.gather(*tasks)
 
     @classmethod
     async def run(cls, instance):
