@@ -50,7 +50,7 @@ class Builder:
 
         if user_input["dev"]:
             env = "dev"
-            flags = "--no-cache" # TODO: make this an appendable list
+            flags = ["--no-cache"]
         
         else:
             env = "prod"
@@ -88,29 +88,24 @@ class Builder:
         # Start the DinD container
         dind_container.start()
 
-        # build execution
+        # Build execution
         try:
-            process = await asyncio.create_subprocess_shell(
-                f"docker exec {dind_container.id} {build_command}",
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                text=False
+            build_command = ["docker", "buildx", "build", image, dockerfile, build_context, *flags, environment_flags]
+            process = client.containers.run(
+                dind_image,
+                command=build_command,
+                detach=True,
+                privileged=True,
+                volumes={f"{image_name}": {"bind": f"/{image_name}", "mode": "rw"}},
+                stdout=True,
+                stderr=True,
             )
 
-            while True:
-                line = await process.stdout.readline()
-                if not line:
-                    break
-                print(line.decode().strip())
-
-        except Exception as e:
-            # Handle exceptions
-            print(f"An error occurred: {e}")
+            # Capture and print the build logs
+            for log_line in dind_container.logs(stream=True, follow=True):
+                print(log_line.decode().strip())
 
         finally:
             # Stop and remove the DinD container
             dind_container.stop()
             dind_container.remove()
-            
-
