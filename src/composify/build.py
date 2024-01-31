@@ -40,7 +40,7 @@ class Builder:
 
     @classmethod
     async def build(cls, project, user_input, image_name, image_data):
-        await cls.log.debug(f"Building {image_name}...")
+        await cls.log.info(f"Building {image_name}...")
         # NOTE: 'image' and 'container' references are used within the same context, 
         # they both mean the same thing to this build system!
 
