@@ -59,7 +59,7 @@ class Builder:
         dockerfile = f"-f {image_data['location'].lstrip('./')}/Dockerfile.{env}"
         build_context = f"{image_data['location']}/."
         environment_flags = None # TODO
-        build_command = f"docker buildx build {image} {dockerfile} {build_context} {' '.join(flags)} --log-level"
+        build_command = f"docker buildx build --load {image} {dockerfile} {build_context} {' '.join(flags)}"
 
         # Extremely simple build process at the moment.
         # TODO: make this build system truly concurrent.
