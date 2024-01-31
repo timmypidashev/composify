@@ -25,6 +25,7 @@ docker = "*"
 [dev-packages]
 pipfile = "*"
 twine = "*"
+reflex = "*"
 
 [requires]
 python_version = "3.11"

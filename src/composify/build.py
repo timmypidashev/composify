@@ -3,9 +3,8 @@ Composify build system
 """
 
 import os
+import sys
 import pty
-import curses
-import docker
 import asyncio
 import subprocess
 
@@ -57,55 +56,24 @@ class Builder:
             flags = ""
 
         image = f"-t {image_name}:{env}"
-        dockerfile = f"-f {image_data['location']}.{env}"
+        dockerfile = f"-f {image_data['location'].lstrip('./')}/Dockerfile.{env}"
         build_context = f"{image_data['location']}/."
         environment_flags = None # TODO
-        build_command = f"docker buildx build {image} {dockerfile} {build_context} {flags} {environment_flags}"
+        build_command = f"docker buildx build {image} {dockerfile} {build_context} {' '.join(flags)} --log-level"
 
-        client = docker.from_env()
-        dind_image = "docker:dind"
-        volumes = {f"{image_name}": {"bind": f"/{image_name}", "mode": "rw"}} # this might have unintended edge cases later...
-
-        # Check if the DinD image is already present
-        try:
-            client.images.get(dind_image)
-        
-        except docker.errors.ImageNotFound:
-            # TODO: Doesnt pull properly, fix client environment
-            # Pull the DinD image if not present
-            await cls.log.info(f"Pulling Docker-in-Docker image: {dind_image}")
-            client.images.pull(dind_image)
-            await cls.log.info(f"Image {dind_image} pulled successfully.")
-
-        # Create a Docker container for DinD
-        dind_container = client.containers.create(
-            dind_image,
-            detach=True,
-            privileged=True,  # Needed for DinD
-            volumes=volumes,
+        # Extremely simple build process at the moment.
+        # TODO: make this build system truly concurrent.
+        process = subprocess.Popen(
+            build_command,
+            shell=True,
+            stdout=subprocess.PIPE
         )
 
-        # Start the DinD container
-        dind_container.start()
+        process.wait()
 
-        # Build execution
-        try:
-            build_command = ["docker", "buildx", "build", image, dockerfile, build_context, *flags, environment_flags]
-            process = client.containers.run(
-                dind_image,
-                command=build_command,
-                detach=True,
-                privileged=True,
-                volumes={f"{image_name}": {"bind": f"/{image_name}", "mode": "rw"}},
-                stdout=True,
-                stderr=True,
-            )
+        if process.returncode == 0:
+            pass
 
-            # Capture and print the build logs
-            for log_line in dind_container.logs(stream=True, follow=True):
-                print(log_line.decode().strip())
+        else:
+            sys.exit()
 
-        finally:
-            # Stop and remove the DinD container
-            dind_container.stop()
-            dind_container.remove()
