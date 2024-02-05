@@ -143,6 +143,7 @@ class Interaction:
 
         project = data.get("project", [])
         containers = data.get("containers", [])
+        print(containers)
 
         # generate build command
         if instance.user_input["dev"]:
@@ -152,11 +153,6 @@ class Interaction:
         else:
             env = "prod"
             flags = ""
-
-        #container = f"-t {container_name}:{env}"
-        #dockerfile = f"-f {container_data['location'].lstrip('./')}/Dockerfile.{env}"
-        #build_context = f"{container_data['location']}/."
-        #build_command = f"docker buildx build --load {container} {dockerfile} {build_context} {' '.join(flags)}"
 
         # build each container in the project
         for container_name, container_data in containers.items():
@@ -171,8 +167,24 @@ class Interaction:
             current_date = datetime.now().strftime("%Y-%m-%d")
 
             default_args = [
+                # EXTRA
                 f"--build-arg BUILD_DATE={current_date}",
-                f"--build-arg GIT_COMMIT={latest_commit}"
+                f"--build-arg GIT_COMMIT={latest_commit}",
+                
+                # PROJECT
+                f"--build-arg PROJECT_TITLE={project.get('title', '')}",
+                f"--build-arg PROJECT_VERSION={project.get('version', '')}",
+                f"--build-arg PROJECT_DESCRIPTION='{project.get('description', '')}'",
+                f"--build-arg PROJECT_AUTHORS={project.get('authors', '')}",
+                f"--build-arg PROJECT_SOURCE={project.get('source', '')}",
+                f"--build-arg PROJECT_LICENSE={project.get('license', '')}",
+
+                # CONTAINER
+                f"--build-arg CONTAINER_VERSION={container_data.get('version', '')}",
+                f"--build-arg CONTAINER_NAME={container_name}",
+                f"--build-arg CONTAINER_DESCRIPTION='{container_data.get('description', '')}'",
+                f"--build-arg CONTAINER_URL={project.get('source', '')}{container_data.get('location', '').lstrip('.')}",
+
             ]
             
             if args_list:
@@ -189,6 +201,8 @@ class Interaction:
             build_context = f"{container_data['location']}/."
             build_command = f"docker buildx build --load {container} {dockerfile} {build_context} {' '.join(flags)} {' '.join(build_args)}"
 
+            await cls.log.info(build_command)
+            
             process = subprocess.Popen(
                 build_command,
                 shell=True,
@@ -202,19 +216,6 @@ class Interaction:
 
             else:
                 sys.exit()
-
-        #builder = build.Builder()
-        #tasks = []
-
-        #for container_name, container_data in containers.items():
-            # TODO: check for custom args in each container and append to build call
-        #    task = asyncio.create_task(builder.build(project, instance.user_input, container_name, container_data))
-        #   tasks.append(task)
-
-        # Build the containers concurrently
-        #await asyncio.gather(*tasks)
-
-        
 
     @classmethod
     async def run(cls, instance):
