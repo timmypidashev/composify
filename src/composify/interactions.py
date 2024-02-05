@@ -6,17 +6,19 @@ from __future__ import unicode_literals
 import inquirer
 from git import Repo
 from blessed import Terminal
+from datetime import datetime
 from halo import Halo
+import subprocess
 import asyncio
 import hashlib
 import uuid
 import re
 import os
 import sys
+import pty
 import yaml
 
 from . import log
-from . import build
 
 class InquirerTheme(inquirer.themes.Theme):
     """
@@ -142,15 +144,77 @@ class Interaction:
         project = data.get("project", [])
         containers = data.get("containers", [])
 
-        builder = build.Builder()
-        tasks = []
+        # generate build command
+        if instance.user_input["dev"]:
+            env = "dev"
+            flags = ["--no-cache"]
 
+        else:
+            env = "prod"
+            flags = ""
+
+        #container = f"-t {container_name}:{env}"
+        #dockerfile = f"-f {container_data['location'].lstrip('./')}/Dockerfile.{env}"
+        #build_context = f"{container_data['location']}/."
+        #build_command = f"docker buildx build --load {container} {dockerfile} {build_context} {' '.join(flags)}"
+
+        # build each container in the project
         for container_name, container_data in containers.items():
-            task = asyncio.create_task(builder.build(project, instance.user_input, container_name, container_data))
-            tasks.append(task)
+            # Fetch args defined in project.yml
+            args_list = container_data.get(f"{env}-args", [])
+            
+            # GIT_COMMIT
+            repo = Repo(search_parent_directories=True)
+            latest_commit = repo.head.object.hexsha
+
+            # BUILD_DATE
+            current_date = datetime.now().strftime("%Y-%m-%d")
+
+            default_args = [
+                f"--build-arg BUILD_DATE={current_date}",
+                f"--build-arg GIT_COMMIT={latest_commit}"
+            ]
+            
+            if args_list:
+                build_args = [f"--build-arg {key}={value}" for args_dict in args_list for key, value in args_dict.items()]
+            else:
+                build_args = []
+
+            build_args += default_args
+
+            print(build_args)
+
+            container = f"-t {container_name}:{env}"
+            dockerfile = f"-f {container_data['location'].lstrip('./')}/Dockerfile.{env}"
+            build_context = f"{container_data['location']}/."
+            build_command = f"docker buildx build --load {container} {dockerfile} {build_context} {' '.join(flags)} {' '.join(build_args)}"
+
+            process = subprocess.Popen(
+                build_command,
+                shell=True,
+                stdout=subprocess.PIPE
+            )
+
+            process.wait()
+
+            if process.returncode == 0:
+                pass
+
+            else:
+                sys.exit()
+
+        #builder = build.Builder()
+        #tasks = []
+
+        #for container_name, container_data in containers.items():
+            # TODO: check for custom args in each container and append to build call
+        #    task = asyncio.create_task(builder.build(project, instance.user_input, container_name, container_data))
+        #   tasks.append(task)
 
         # Build the containers concurrently
-        await asyncio.gather(*tasks)
+        #await asyncio.gather(*tasks)
+
+        
 
     @classmethod
     async def run(cls, instance):
